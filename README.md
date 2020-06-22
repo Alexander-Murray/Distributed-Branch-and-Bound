@@ -3,11 +3,11 @@
 Branch and Bound algorithm with parallelized NLP subproblems. An ADMM algorithm is provided as the default method for distributed optimiztion of the NLP subproblems. Standard branch and bound method also included. This code uses the open-source tool CasADi:  
 https://web.casadi.org/  
 
-Input problem must be partitioned:
-**obj_funs:** cell array of CasADi functions
-**cons_funs:** cell array of CasADi functions
+Input problem must be partitioned:  
+**obj_funs:** cell array of CasADi functions  
+**cons_funs:** cell array of CasADi functions  
 **lbx:** cell array of vectors  
-**ubx:** cell array of vectors 
+**ubx:** cell array of vectors  
 **lbz:** cell array of vectors    
 **ubz:** cell array of vectors  
 **A:** cell array of matrices  
@@ -15,7 +15,7 @@ Input problem must be partitioned:
 **c:** vector  
 **x0:** cell array of vectors  
 **z0:** cell array of vectors  
-**params:** struct
+**params:** struct  
 **opts:** struct  
 
 Params will assume default values if left empty. Possible params to set:  
@@ -30,7 +30,7 @@ Params will assume default values if left empty. Possible params to set:
 **maxiter:** int. Iteration limit. Default: 1000; 
 
 Opts must be set. Algorithm options are:  
-**NLP_solver:** 'ipopt'
+**NLP_solver:** 'ipopt'  
 **NLPsolver_opts:** used to pass options to the NLP solver   
 **custom_weights:** optional node weighting.   
 
