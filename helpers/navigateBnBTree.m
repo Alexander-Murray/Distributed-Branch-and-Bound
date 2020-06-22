@@ -1,4 +1,4 @@
-function [finish,dec_ind,lbz,ubz,status] = navigateBnBTree(node_info,U,L,d,lbz,ubz,ints,eps)
+function [finish,dec_ind,lbz,ubz,status] = navigateBnBTree(node_info,U,L,d,lbz,ubz,ints,int_parts,eps)
     node_stack = node_info(:,1);
     nodal_weights = node_info(:,2);
     [finish,status] = terminationCheckBnB(node_stack,U,L,eps);
@@ -9,10 +9,10 @@ function [finish,dec_ind,lbz,ubz,status] = navigateBnBTree(node_info,U,L,d,lbz,u
     dec_num = str2num(char(dec_ind));
     
     n = length(d);
-    for i = 1:n
-        if dec_num(i)~=0
-           lbz(i) = ints{i}(dec_num(i));
-           ubz(i) = ints{i}(dec_num(i));
+    for i = 1:n %loop over all integer decisions
+        if dec_num(i)~=0 % check if integer var must be fixed
+           lbz{int_parts(i,2)}(int_parts(i,3)) = ints{i}(dec_num(i));
+           ubz{int_parts(i,2)}(int_parts(i,3)) = ints{i}(dec_num(i));
         end 
     end
 end

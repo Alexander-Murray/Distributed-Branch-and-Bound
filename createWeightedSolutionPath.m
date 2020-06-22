@@ -1,5 +1,3 @@
-% create custom node weights for input vector sol from index s to index e.
-% output is nx2 string array which should be converted to numeric values by getNodeWeights. 
 function weights = createWeightedSolutionPath(sol,ints,s,e)
     if e<s
        error('s must be less than or equal to e') 
@@ -18,13 +16,4 @@ function weights = createWeightedSolutionPath(sol,ints,s,e)
        dec(i) = find(ints{i}==sol(i));
        weights = [weights;[string(num2str(dec)),4*length(d)-i]];
     end 
-    
-    % create weighting for children of sol
-    nodes = getChildrenv2(d,string(num2str(dec)));
-    while ~isempty(nodes)
-        current_node = nodes(1);
-        weights = [weights;[current_node,3*length(d)]];
-        nodes = [nodes; getChildrenv2(d,current_node)];
-        nodes(1) = [];
-    end
 end

@@ -1,4 +1,4 @@
-function [ sol, log] = solveNLP( f,ineq,lbx,ubx,x0,opts)
+function [ sol, log] = solveNLP( f,ineq,lbx,ubx,x0,NLP_solver,NLPsolver_opts)
     import casadi.*
     nx= length(x0);
     z = SX.sym('z',nx,1);
@@ -12,8 +12,8 @@ function [ sol, log] = solveNLP( f,ineq,lbx,ubx,x0,opts)
     nlp = struct('x',z,'f',fcas,'g',ineqcas);
     
     tic
-    if strcmp(opts.NLP_solver,'ipopt') 
-        cas = nlpsol('solver','ipopt',nlp, opts.NLPsolver_opts);
+    if strcmp(NLP_solver,'ipopt') 
+        cas = nlpsol('solver','ipopt',nlp, NLPsolver_opts);
         sol = cas('x0' , x0,...
                 'lbx', lbx,...
                 'ubx', ubx,...

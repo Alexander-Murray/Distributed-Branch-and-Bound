@@ -6,9 +6,11 @@ import casadi.*
 
 %% Problem parameters
 N = 10; % number of partitions
+nd = 2; % number of real and discrete vars per partitions
 NC = 5; % number of consensus constraints
-nx = 10*ones(N,1); % number of real vars in each partition
-nz = 1*ones(N,1); % number of discrete vars in each partition
+
+nx = nd*ones(N,1); % number of real vars in each partition
+nz = nd*ones(N,1); % number of discrete vars in each partition
 nxz = nx+nz;
 
 %% Problem setup
@@ -36,15 +38,15 @@ for i = 1:N
     % box constraints
     lbx{i} = -2*ones(nx(i),1);
     ubx{i} = 2*ones(nx(i),1);
-    lbz{i} = -2;
-    ubz{i} = 2;
-    ints{i} = lbz{i}:ubz{i};
+    lbz{i} = -2*ones(nz(i),1);
+    ubz{i} = 2*ones(nz(i),1);
     
     % vector denoting which variables are integer valued
     discrete{i}=[zeros(1,nx(i)),ones(1,nz(i))];
 end
 c = zeros(NC,1); % RHS of consensus constraints
 lam0 = zeros(NC,1); % initial guess of Lagrange multiplier of consensus constraints
+[ints,int_parts] = get_int_parts(lbz,ubz); % integer decision info for branch-and-bound navigation
 
 %% Centralized solution
 
@@ -109,6 +111,7 @@ opts.NLPsolver_opts.ipopt.print_level = 0;
 opts.NLPsolver_opts.verbose = 0;
 opts.NLPsolver_opts.verbose_init = 0;
 
+% SBB uses same input format as DBB
 SBB_obj{1} = obj_cent;
 SBB_con{1} = cons_cent;
 SBB_lbx{1} = vertcat(lbx{:});
@@ -119,16 +122,31 @@ SBB_A{1} = horzcat(A{:});
 SBB_B{1} = horzcat(B{:});
 SBB_x0{1} = vertcat(x0{:});
 SBB_z0{1} = vertcat(z0{:});
-[XZsol,log] = Standard_BnB(SBB_obj,SBB_con,SBB_lbx,SBB_lbz,SBB_ubx,SBB_ubz,SBB_A,SBB_B,c,SBB_x0,SBB_z0,ints,params,opts);
 
+% create some full or partial weighted initial guesses
+zsol{1} = ones(sum(nz),1); weight{1} = 3;
+zsol{2} = [1;5;ones(sum(nz)-2,1)]; weight{2} = 3;
+zsol{3} = [1;5;5;ones(sum(nz)-3,1)]; weight{3} = 2;
+
+zsols = horzcat(zsol{:});
+weights = horzcat(weight{:});
+opts.custom_weights = [zsols',weights'];
+
+% (altenative) create weights based on first half of initial guess
+zsol_weights = createWeightedSolutionPath(vertcat(z0{:}),ints,1,sum(nz)/2);
+opts.custom_weights = zsol_weights;
+
+% Run standard branch and bound
+[XZsol,log] = Standard_BnB(SBB_obj,SBB_con,SBB_lbx,SBB_lbz,SBB_ubx,SBB_ubz,SBB_A,SBB_B,c,SBB_x0,SBB_z0,ints,int_parts,params,opts);
 SBB_time = log.root_time + sum(log.milp_time) + sum(log.nlp_time) + sum(log.branch_time);
 
+% Run distributed branch and bound
+opts.NLP_solver = 'ADMM';
+[XZsol2,log2] = Dist_BnB(obj_funs,cons_funs,lbx,lbz,ubx,ubz,A,B,c,x0,z0,ints,int_parts,params,opts);
+DBB_time = log2.root_time + sum(log2.milp_time) + sum(log2.nlp_time) + sum(log2.branch_time);
+
 %% display solution
-disp('Bonmin time')
-disp(Cent_time)
-disp('SBB time')
-disp(SBB_time)
-disp('SBB obj. / Bonmin obj.')
-disp(full(obj_cent(XZsol)/sol.f))
-disp('|SBB x - Bonmin x|')
-disp(sum(abs(XZsol-full(sol.x))))
+disp('Bonmin time  SBB time  DBB time')
+disp([Cent_time SBB_time DBB_time])
+disp('  Bonmin obj.  SBB obj.  DBB obj.')
+disp([full(sol.f) log.U(end) log2.U(end)])
