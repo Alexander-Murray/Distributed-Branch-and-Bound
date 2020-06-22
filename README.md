@@ -34,7 +34,7 @@ Opts must be set. Algorithm options are:
 **NLPsolver_opts:** used to pass options to the NLP solver   
 **custom_weights:** optional node weighting.   
 
-The syntax for using the algorithm is shown in the EXAMPLE_MIP. The option 'ADMM_exp_lasso' calls on a specialized ADMM algorithm for a problem of the form shown in MI)lasso_problem.
+The syntax for using the algorithm is shown in the EXAMPLE_MIP. The option 'ADMM_exp_lasso' calls on a specialized ADMM algorithm for a problem of the form shown in MI_lasso_problem.
 
 To cite use:  
 @Article{Murray_2020e,
